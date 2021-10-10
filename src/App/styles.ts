@@ -1,4 +1,4 @@
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 
 export const Container = styled.main`
   width: 100%;
@@ -56,7 +56,14 @@ export const TodoList = styled.ul`
   list-style: none;
   overflow-y: auto;
   scroll-behavior: smooth;
-
+  ${(props: { empty: boolean }) =>
+    props.empty &&
+    css`
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    `}
 
   &::-webkit-scrollbar {
     width: 8px;
@@ -91,6 +98,8 @@ export const TodoText = styled.div`
   flex: 1;
   padding-right: 0.5rem;
   width: 70%;
+  display: flex;
+  align-items: center;
 `;
 
 export const TodoControl = styled.div`
@@ -98,9 +107,11 @@ export const TodoControl = styled.div`
   max-width: 3rem;
   min-width: 3rem;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: flex-end;
   padding: 5px;
+  gap: 5px;
 `;
 
 export const LoaderContainer = styled.div`
@@ -111,4 +122,10 @@ export const LoaderContainer = styled.div`
   height: 100%;
   background-color: #f2f3f5;
   z-index: 1000;
+`;
+
+export const Placeholder = styled.p`
+  color: #888888;
+  text-align: center;
+  padding: 0 1rem;
 `;

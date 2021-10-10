@@ -1,14 +1,18 @@
 import React, { useState } from "react";
 
-import { v4 as uuidV4 } from "uuid";
+import { MdDelete, MdMode } from "react-icons/md";
 
-import { useToast } from "@chakra-ui/toast";
-import { Button, IconButton } from "@chakra-ui/button";
 import { Input } from "@chakra-ui/input";
-
-import { MdDelete } from "react-icons/md";
+import { useToast } from "@chakra-ui/toast";
+import { Progress } from "@chakra-ui/react";
+import { Button, IconButton } from "@chakra-ui/button";
 
 import Delete from "../components/Delete";
+import Prompt from "../components/Prompt";
+
+import showToast from "../utils/showToast";
+
+import { useTodo } from "../contexts/Todo";
 
 import {
   Container,
@@ -23,9 +27,8 @@ import {
   TodoText,
   TodoControl,
   LoaderContainer,
+  Placeholder,
 } from "./styles";
-import { Progress } from "@chakra-ui/react";
-
 interface ITodo {
   description: string;
 }
@@ -42,67 +45,84 @@ interface IOpen {
 const App: React.FC = () => {
   const toast = useToast();
 
-  const [todos, setTodos] = useState<Array<ITodoOnList>>([]);
+  const { todoList, addTodo, deleteTodo, updateTodo } = useTodo();
+
   const [text, setText] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
 
   const [isOpen, setIsOpen] = useState<IOpen>({
     open: false,
   });
+  const [editing, setEditing] = useState<ITodoOnList | null>(null);
 
-  function addTodo(): boolean {
-    if (!text) {
-      toast({
-        description: "Você deve adicionar uma descrição",
-        duration: 5000,
-        status: "warning",
-        isClosable: true,
-        position: "top",
-        variant: "left-accent",
-      });
-
-      setText("");
-
-      return false;
-    }
-
-    setTodos((state) => [
-      ...state,
+  function handleAddTodo(): boolean {
+    setLoading(true);
+    addTodo(
       {
         description: text,
-        id: String(uuidV4()),
       },
-    ]);
+      (error) => {
+        showToast(toast, {
+          description: error.message,
+          duration: 5000,
+          status: "warning",
+        });
+        setLoading(false);
+      },
+      () => {
+        showToast(toast, {
+          description: "TODO adicionado com sucesso",
+          duration: 1500,
+          status: "success",
+          variant: "solid",
+        });
+        setLoading(false);
+      }
+    );
 
     setText("");
-
-    toast({
-      description: "TODO adicionado com sucesso",
-      duration: 3000,
-      status: "success",
-      isClosable: true,
-      position: "top",
-      variant: "solid",
-    });
 
     return true;
   }
 
-  function deleteTodo(id: string) {
+  function handleDeleteTodo(id: string) {
     setLoading(true);
-    setTimeout(() => {
-      setTodos((state) => state.filter((todo) => todo.id !== id));
+    deleteTodo(
+      id,
+      (error) => {
+        showToast(toast, {
+          description: error.message,
+          status: "warning",
+        });
+        setLoading(false);
+      },
+      () => {
+        showToast(toast, {
+          description: "TODO deletado",
+        });
+        setLoading(false);
+      }
+    );
+  }
 
-      toast({
-        description: "TODO deletado",
-        duration: 2000,
-        status: "info",
-        isClosable: true,
-        position: "top",
-        variant: "left-accent",
-      });
-      setLoading(false);
-    }, 2000);
+  function handleUpdateTodo(todo: ITodoOnList) {
+    setLoading(true);
+    updateTodo(
+      todo,
+      (error) => {
+        showToast(toast, {
+          description: error.message,
+          status: "warning",
+        });
+        setLoading(false);
+      },
+      () => {
+        showToast(toast, {
+          description: "TODO atualizado com sucesso",
+        });
+        setLoading(false);
+      }
+    );
   }
 
   const renderTodo = (todo: ITodoOnList) => (
@@ -123,6 +143,18 @@ const App: React.FC = () => {
             });
           }}
         />
+        <IconButton
+          colorScheme="yellow"
+          aria-label="Update Todo"
+          size="sm"
+          icon={<MdMode />}
+          onClick={() => {
+            setEditing({
+              id: todo.id,
+              description: todo.description,
+            });
+          }}
+        />
       </TodoControl>
     </TodoItem>
   );
@@ -136,19 +168,16 @@ const App: React.FC = () => {
 
   function handleAccept() {
     if (isOpen.id) {
-      deleteTodo(isOpen.id);
+      handleDeleteTodo(isOpen.id);
       setIsOpen({
         id: null,
         open: false,
       });
     } else {
-      toast({
+      showToast(toast, {
         description: "Não foi possível deletar esse item da lista",
         duration: 5000,
         status: "error",
-        isClosable: true,
-        position: "top",
-        variant: "left-accent",
       });
     }
   }
@@ -158,16 +187,35 @@ const App: React.FC = () => {
       <Title>Chakara Todo</Title>
       <Body>
         <Delete onAccept={handleAccept} onClose={handleClose} isOpen={isOpen} />
+        <Prompt
+          onSave={(description, id) => {
+            handleUpdateTodo({
+              description,
+              id,
+            });
+            setEditing(null);
+          }}
+          todo={editing}
+          onClose={() => setEditing(null)}
+        />
         <List>
           {loading && (
             <LoaderContainer>
               <Progress size="xs" isIndeterminate />
             </LoaderContainer>
           )}
-          <TodoList>{todos.map(renderTodo)}</TodoList>
+          <TodoList empty={todoList.length === 0}>
+            {todoList.length > 0 ? (
+              todoList.map(renderTodo)
+            ) : (
+              <Placeholder>Sua lista está vazia</Placeholder>
+            )}
+          </TodoList>
           <InputContianer>
             <InputGroup>
               <Input
+                isRequired
+                autoFocus
                 disabled={loading}
                 placeholder="Todo"
                 color="#777777"
@@ -175,15 +223,16 @@ const App: React.FC = () => {
                 onChange={(e) => setText(e.target.value)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
-                    addTodo();
+                    handleAddTodo();
                   }
                 }}
               />
               <Button
                 h="2rem"
                 borderColor="lightgray"
-                onClick={addTodo}
+                onClick={handleAddTodo}
                 disabled={loading}
+                colorScheme="green"
               >
                 Adicionar
               </Button>

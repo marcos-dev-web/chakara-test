@@ -27,6 +27,7 @@ const Delete: React.FC<IProps> = ({ onAccept, onClose, isOpen }) => {
       isOpen={isOpen.open}
       onClose={onClose}
       leastDestructiveRef={undefined}
+      isCentered
     >
       <AlertDialogOverlay>
         <AlertDialogContent>
