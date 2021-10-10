@@ -32,7 +32,7 @@ const Prompt: React.FC<IProps> = ({ onSave, todo, onClose }) => {
   }, [todo]);
 
   return (
-    <Modal isOpen={Boolean(todo)} onClose={onClose}>
+    <Modal isOpen={Boolean(todo)} onClose={onClose} isCentered size="md">
       <ModalOverlay />
       <ModalContent>
         <ModalHeader>Editar TODO</ModalHeader>
