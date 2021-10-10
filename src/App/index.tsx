@@ -14,7 +14,7 @@ import showToast from "../utils/showToast";
 
 import { useTodo } from "../contexts/Todo";
 
-import LocalStorage from "../services/LocalStorage";
+import LocalStorage from "../services/localStorage";
 
 import {
   Container,

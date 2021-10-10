@@ -34,7 +34,7 @@ const Prompt: React.FC<IProps> = ({ onSave, todo, onClose }) => {
   return (
     <Modal isOpen={Boolean(todo)} onClose={onClose} isCentered size="md">
       <ModalOverlay />
-      <ModalContent maxWidth="95%">
+      <ModalContent width="95%" maxWidth="500px">
         <ModalHeader>Editar TODO</ModalHeader>
         <ModalCloseButton />
         <ModalBody pb={6}>
@@ -45,7 +45,7 @@ const Prompt: React.FC<IProps> = ({ onSave, todo, onClose }) => {
               onChange={(e) => setNewText(e.target.value)}
               value={newText}
               noOfLines={4}
-              onKeyDown={e => {
+              onKeyDown={(e) => {
                 if (e.key === "Enter") {
                   onSave(newText, todo ? todo.id : "0");
                 }
@@ -63,7 +63,7 @@ const Prompt: React.FC<IProps> = ({ onSave, todo, onClose }) => {
             salvar
           </Button>
           <Button onClick={onClose} colorScheme="red">
-            Cancelar
+            cancelar
           </Button>
         </ModalFooter>
       </ModalContent>
