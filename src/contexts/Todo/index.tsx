@@ -4,7 +4,7 @@ import { v4 as uuidV4 } from "uuid";
 
 import { ITodo, ITodoList, OnError, OnSuccess, Context } from "./interfaces";
 
-import LocalStorage from "../../services/localStorage";
+import LocalStorage from "../../services/LocalStorage";
 
 const INITIAL_CONTEXT: Context = {} as Context;
 

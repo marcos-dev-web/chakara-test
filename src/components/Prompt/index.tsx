@@ -34,17 +34,22 @@ const Prompt: React.FC<IProps> = ({ onSave, todo, onClose }) => {
   return (
     <Modal isOpen={Boolean(todo)} onClose={onClose} isCentered size="md">
       <ModalOverlay />
-      <ModalContent>
+      <ModalContent maxWidth="95%">
         <ModalHeader>Editar TODO</ModalHeader>
         <ModalCloseButton />
         <ModalBody pb={6}>
           <FormControl>
-            <FormLabel>TODO: edição</FormLabel>
+            <FormLabel noOfLines={1}>{todo?.description}</FormLabel>
             <Input
-              placeholder="TODO: edição"
+              placeholder="Editar TODO"
               onChange={(e) => setNewText(e.target.value)}
               value={newText}
               noOfLines={4}
+              onKeyDown={e => {
+                if (e.key === "Enter") {
+                  onSave(newText, todo ? todo.id : "0");
+                }
+              }}
             />
           </FormControl>
         </ModalBody>

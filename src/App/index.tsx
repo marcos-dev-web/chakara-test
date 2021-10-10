@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 
 import { MdDelete, MdMode } from "react-icons/md";
 
@@ -14,8 +14,11 @@ import showToast from "../utils/showToast";
 
 import { useTodo } from "../contexts/Todo";
 
+import LocalStorage from "../services/LocalStorage";
+
 import {
   Container,
+  Header,
   Title,
   Body,
   List,
@@ -54,6 +57,25 @@ const App: React.FC = () => {
     open: false,
   });
   const [editing, setEditing] = useState<ITodoOnList | null>(null);
+  const [titlePage, setTitlePage] = useState<string | null>(null);
+  const [editingTitle, setEditingTitle] = useState(false);
+  const [newTitle, setNewTitle] = useState(titlePage || "");
+
+  const storage: LocalStorage = useRef(new LocalStorage()).current;
+
+  useEffect(() => {
+    if (titlePage === null) {
+      if (storage.getTitle.length > 0) {
+        setTitlePage(storage.getTitle);
+        setNewTitle(storage.getTitle);
+        document.title = storage.getTitle;
+      } else {
+        setTitlePage("Chakara TODO");
+        setNewTitle("Chakara TODO");
+        document.title = "Chakara TODO";
+      }
+    }
+  }, [titlePage, storage.getTitle]);
 
   function handleAddTodo(): boolean {
     setLoading(true);
@@ -74,7 +96,6 @@ const App: React.FC = () => {
           description: "TODO adicionado com sucesso",
           duration: 1500,
           status: "success",
-          variant: "solid",
         });
         setLoading(false);
       }
@@ -119,10 +140,53 @@ const App: React.FC = () => {
       () => {
         showToast(toast, {
           description: "TODO atualizado com sucesso",
+          status: "success",
         });
         setLoading(false);
       }
     );
+  }
+
+  function handleChangeTitle() {
+    if (newTitle.length === 0) {
+      showToast(toast, {
+        description: "O título não pode estar vazio",
+        duration: 2000,
+        status: "warning",
+      });
+      return;
+    }
+
+    storage.updateTitle(newTitle);
+    setTitlePage(newTitle);
+    showToast(toast, {
+      description: "Título alterado com sucesso",
+      duration: 1500,
+      status: "success",
+    });
+  }
+
+  function handleClose() {
+    setIsOpen({
+      open: false,
+      id: null,
+    });
+  }
+
+  function handleAccept() {
+    if (isOpen.id) {
+      handleDeleteTodo(isOpen.id);
+      setIsOpen({
+        id: null,
+        open: false,
+      });
+    } else {
+      showToast(toast, {
+        description: "Não foi possível deletar esse item da lista",
+        duration: 5000,
+        status: "error",
+      });
+    }
   }
 
   const renderTodo = (todo: ITodoOnList) => (
@@ -159,32 +223,51 @@ const App: React.FC = () => {
     </TodoItem>
   );
 
-  function handleClose() {
-    setIsOpen({
-      open: false,
-      id: null,
-    });
-  }
-
-  function handleAccept() {
-    if (isOpen.id) {
-      handleDeleteTodo(isOpen.id);
-      setIsOpen({
-        id: null,
-        open: false,
-      });
-    } else {
-      showToast(toast, {
-        description: "Não foi possível deletar esse item da lista",
-        duration: 5000,
-        status: "error",
-      });
-    }
-  }
-
   return (
     <Container>
-      <Title>Chakara Todo</Title>
+      <Header>
+        {editingTitle ? (
+          <Input
+            isRequired
+            autoFocus
+            width="100%"
+            maxWidth="200px"
+            disabled={loading}
+            placeholder="Título"
+            color="#777777"
+            value={newTitle}
+            onChange={(e) => setNewTitle(e.target.value)}
+            onBlur={() => {
+              setNewTitle(titlePage || "");
+              setEditingTitle(false);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                handleChangeTitle();
+                setEditingTitle(false);
+              }
+              if (e.key === "Escape") {
+                setNewTitle(titlePage || "");
+                setEditingTitle(false);
+              }
+            }}
+          />
+        ) : (
+          <Title>
+            {titlePage}
+            <IconButton
+              colorScheme="yellow"
+              aria-label="Editar titulo"
+              size="sm"
+              marginLeft="1rem"
+              icon={<MdMode />}
+              onClick={() => {
+                setEditingTitle(true);
+              }}
+            />
+          </Title>
+        )}
+      </Header>
       <Body>
         <Delete onAccept={handleAccept} onClose={handleClose} isOpen={isOpen} />
         <Prompt

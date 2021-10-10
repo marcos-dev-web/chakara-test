@@ -30,7 +30,7 @@ const Delete: React.FC<IProps> = ({ onAccept, onClose, isOpen }) => {
       isCentered
     >
       <AlertDialogOverlay>
-        <AlertDialogContent>
+        <AlertDialogContent maxWidth="95%">
           <AlertDialogHeader fontSize="lg" fontWeight="bold">
             Deletar Todo
           </AlertDialogHeader>

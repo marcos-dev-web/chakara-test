@@ -6,13 +6,19 @@ export const Container = styled.main`
   background-color: #f2f3f5;
 `;
 
+export const Header = styled.div`
+  height: 4rem;
+  border-bottom: 1px solid lightgray;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+
 export const Title = styled.h1`
   font-weight: bold;
-  font-size: 1.5em;
+  font-size: 1.3em;
   text-align: center;
-  border-bottom: 1px solid lightgray;
-  padding-top: 0.5em;
-  height: 4rem;
+  width: fit-content;
 `;
 
 export const Body = styled.div`
